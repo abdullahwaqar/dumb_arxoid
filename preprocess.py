@@ -20,10 +20,18 @@ class Preprocessor:
                 id_to_lines[_line[0]] = _line[4]
         return id_to_lines
 
-    def get_conversations(slef):
-        data_buffer = slef.read_file(self.movie_conversations)
+    def get_conversations(self):
+        """
+        @return: List of all of the conversations' lines' ids.
+        """
+        data_buffer = self.read_file(self.movie_conversations)
         conversations = []
+        for line in data_buffer[:-1]:
+            print(line)
+            _line = line.split(' +++$+++ ')[-1][1:-1].replace("'","").replace(" ","")
+            conversations.append(_line.split(','))
+        return conversations
 
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    print(p.get_id_mapping())
+    p.get_conversations()
