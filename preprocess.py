@@ -1,4 +1,6 @@
 import re
+import numpy as np
+import pandas as pd
 
 class Preprocessor:
 
@@ -24,7 +26,7 @@ class Preprocessor:
 
     def clean_text(slef, text):
         '''
-        Clean text by removing unnecessary characters and altering the format of words.
+        @desc: Clean text by removing unnecessary characters and altering the format of words.
         '''
         text = text.lower()
 
@@ -48,7 +50,6 @@ class Preprocessor:
         text = re.sub(r"'bout", "about", text)
         text = re.sub(r"'til", "until", text)
         text = re.sub(r"[-()\"#/@;:<>{}`+=~|.!?,]", "", text)
-
         return text
 
     def get_conversations(self):
@@ -106,7 +107,37 @@ class Preprocessor:
             clean_answers.append(self.clean_text(answer))
         return clean_answers
 
+    def filter_questions_answers(self):
+        #* Remove questions and answers that are shorter than 2 words and longer than 20 words.
+        min_line_length = 2
+        max_line_length = 20
+
+        #* Filter out the questions that are too short/long
+        short_questions_temp = []
+        short_answers_temp = []
+
+        counter = 0
+        for question in self.get_clean_questions():
+            if len(question.split()) >= min_line_length and len(question.split()) <= max_line_length:
+                short_questions_temp.append(question)
+                short_answers_temp.append(self.get_clean_answers()[counter])
+            counter += 1
+
+        #* Filter out the answers that are too short/long
+        short_questions = []
+        short_answers = []
+
+        counter = 0
+        for answer in short_answers_temp:
+            if len(answer.split()) >= min_line_length and len(answer.split()) <= max_line_length:
+                short_answers.append(answer)
+                short_questions.append(short_questions_temp[counter])
+            counter += 1
+        print("# of questions:", len(short_questions))
+        print("# of answers:", len(short_answers))
+        print("% of data used: {}%".format(round(len(short_questions)/len(questions),4)*100))
 
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    print(p.get_clean_answers())
+    # print(p.get_clean_answers())
+    p.filter_questions_answers()
