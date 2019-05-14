@@ -32,6 +32,21 @@ class Preprocessor:
             conversations.append(_line.split(','))
         return conversations
 
+    def sort_questions_answers(self):
+        """
+        @return: Sort the sentences into questions (inputs) and answers (targets)
+        """
+        get_lines = self.get_lines()
+        get_conversations = self.get_conversations()
+        questions = []
+        answers = []
+        for conv in get_conversations:
+            for i in range(len(conv) - 1):
+                questions.append(get_lines[conv[i]])
+                answers.append(get_lines[conv[i]])
+        return (questions, answers)
+
+
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    p.get_conversations()
+    print(p.sort_questions_answers().answers)
