@@ -136,6 +136,7 @@ class Preprocessor:
         print("# of questions:", len(short_questions))
         print("# of answers:", len(short_answers))
         print("% of data used: {}%".format(round(len(short_questions)/len(questions),4)*100))
+        return short_questions, short_answers
 
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
