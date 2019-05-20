@@ -27,3 +27,8 @@ def insert_into_table(table_name, values):
     conn.commit()
     conn.close()
     return True
+
+def select_all_data(table_name):
+    conn = get_db_conn()
+    cur = get_conn_cursor(conn)
+    return cur.execute('SELECT filtered_question, filtered_answer FROM {};'.format(table_name)).fetchall()

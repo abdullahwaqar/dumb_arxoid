@@ -3,7 +3,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from db_utils import insert_into_table
+from db_utils import insert_into_table, select_all_data
 
 class Preprocessor:
 
@@ -147,6 +147,26 @@ class Preprocessor:
         print("% of data used: {}%".format(round(len(short_questions)/len(questions),4)*100))
         return True
 
+    def create_vocabulary(self):
+        """
+        @return: A dictionary for the frequency of the vocabulary
+        """
+        vocab = {}
+        db_rows = select_all_data('arxiod_filtered_data')
+        for question, answer in db_rows:
+            for word in question.split():
+                if word not in vocab:
+                    vocab[word] = 1
+                else:
+                    vocab[word] += 1
+            for word in answer.split():
+                if word not in vocab:
+                    vocab[word] = 1
+                else:
+                    vocab[word] += 1
+        return vocab
+
+
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    p.insert_filter_questions_answers()
+    p.create_vocabulary()
