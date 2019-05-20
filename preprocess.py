@@ -164,6 +164,13 @@ class Preprocessor:
                     vocab[word] = 1
                 else:
                     vocab[word] += 1
+
+        #* Remove rare words from the vocabulary.
+        threshold = 10
+        count = 0
+        for k,v in vocab.items():
+            if v >= threshold:
+                count += 1
         return vocab
 
 
