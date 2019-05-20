@@ -1,6 +1,9 @@
+import sys
 import re
 import numpy as np
 import pandas as pd
+
+from db_utils import insert_into_table
 
 class Preprocessor:
 
@@ -107,7 +110,7 @@ class Preprocessor:
             clean_answers.append(self.clean_text(answer))
         return clean_answers
 
-    def filter_questions_answers(self):
+    def insert_filter_questions_answers(self):
         #* Remove questions and answers that are shorter than 2 words and longer than 20 words.
         min_line_length = 2
         max_line_length = 20
@@ -121,6 +124,8 @@ class Preprocessor:
             if len(question.split()) >= min_line_length and len(question.split()) <= max_line_length:
                 short_questions_temp.append(question)
                 short_answers_temp.append(self.get_clean_answers()[counter])
+                sys.stdout.write('Data Cleaned \r%d%%' % counter)
+                sys.stdout.flush()
             counter += 1
 
         #* Filter out the answers that are too short/long
@@ -130,15 +135,18 @@ class Preprocessor:
         counter = 0
         for answer in short_answers_temp:
             if len(answer.split()) >= min_line_length and len(answer.split()) <= max_line_length:
-                short_answers.append(answer)
-                short_questions.append(short_questions_temp[counter])
+                # short_answers.append(answer)
+                # short_questions.append(short_questions_temp[counter])
+                #* Inser into db because it can take time on every execution
+                insert_into_table('arxiod_filtered_data', [short_questions_temp[counter], answer])
+                sys.stdout.write('Data Written to DB \r%d%%' % counter)
+                sys.stdout.flush()
             counter += 1
         print("# of questions:", len(short_questions))
         print("# of answers:", len(short_answers))
         print("% of data used: {}%".format(round(len(short_questions)/len(questions),4)*100))
-        return short_questions, short_answers
+        return True
 
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    # print(p.get_clean_answers())
-    p.filter_questions_answers()
+    p.insert_filter_questions_answers()

@@ -23,9 +23,7 @@ def create_table(query):
 def insert_into_table(table_name, values):
     conn = get_db_conn()
     cur = get_conn_cursor(conn)
-    cur.execute('INSERT INTO {} (id, filtered_questions, filtered_answers) VALUES({}, {}, {});'.format(table_name, values[0], values[1], values[2]))
+    cur.execute('INSERT INTO {} (id, filtered_question, filtered_answer) VALUES(null, ?, ?);'.format(table_name), values)
     conn.commit()
     conn.close()
     return True
-
-insert_into_table('arxiod_filtered_data', [0, 'helloooo', ''])
