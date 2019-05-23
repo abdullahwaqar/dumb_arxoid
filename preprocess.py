@@ -249,6 +249,55 @@ class Preprocessor:
             eos_answers.append(answer + ' <EOS>')
         return eos_answers
 
+    def text_to_int(self):
+        """
+        @desc: Convert the text to integers.
+        Replace any words that are not in the respective vocabulary with <UNK>
+        """
+        questions_int = []
+        answers_int = []
+
+        question_vocab_int = self.add_unique_token_to_question_vocab()
+        answer_vocab_int = self.add_unique_token_to_answer_vocab()
+
+        db_rows = select_all_data('arxiod_filtered_data')
+        for question, answer in db_rows:
+            ints = []
+            for word in question.split():
+                if word not in question_vocab_int:
+                    ints.append(question_vocab_int['<UNK>'])
+                else:
+                    ints.append(question_vocab_int[word])
+            questions_int.append(ints)
+
+            ints = []
+            for word in answer.split():
+                if word not in answer_vocab_int:
+                    ints.append(answer_vocab_int['<UNK>'])
+                else:
+                    ints.append(answer_vocab_int[word])
+            answers_int.append(ints)
+        return questions_int, answers_int
+
+    def sorted_question_answer(self):
+        """
+        @desc: Sort questions and answers by the length of questions.
+        This will reduce the amount of padding during training
+        Which should speed up training and help to reduce the loss
+        """
+        sorted_questions = []
+        sorted_answers = []
+
+        max_line_length = 20
+        questions_int, answers_int = self.text_to_int()
+
+        for length in range(1, max_line_length + 1):
+            for i in enumerate(questions_int):
+                if len(i[1]) == length:
+                    sorted_questions.append(questions_int[i[0]])
+                    sorted_answers.append(answers_int[i[0]])
+        return sorted_questions, sorted_answers
+
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    print(p.tokenize_answer())
+    print(p.text_to_int())
