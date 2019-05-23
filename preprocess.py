@@ -173,7 +173,82 @@ class Preprocessor:
                 count += 1
         return vocab
 
+    def question_vocab_int(self):
+        """
+        @return: Dictionary to provide a unique integer for each word.
+        """
+        questions_vocab_to_int = {}
+        threshold = 10
+        word_num = 0
+
+        for word, count in self.create_vocabulary().items():
+            if count >= threshold:
+                questions_vocab_to_int[word] = word_num
+                word_num += 1
+
+        return questions_vocab_to_int
+
+    def answer_vocab_int(self):
+        """
+        @return: Dictionary to provide a unique integer for each word.
+        """
+        answers_vocab_to_int = {}
+        threshold = 10
+        word_num = 0
+
+        for word, count in self.create_vocabulary().items():
+            if count >= threshold:
+                answers_vocab_to_int[word] = word_num
+                word_num += 1
+
+        return answers_vocab_to_int
+
+    def add_unique_token_to_question_vocab(self):
+        """
+        @return: Add the unique tokens to the vocabulary dictionaries.
+        """
+        questions_vocab_tokened = self.question_vocab_int()
+        codes = ['<PAD>', '<EOS>', '<UNK>', '<GO>']
+
+        for code in codes:
+            questions_vocab_tokened[code] = len(questions_vocab_tokened) + 1
+        return questions_vocab_tokened
+
+    def add_unique_token_to_answer_vocab(self):
+        """
+        @return: Add the unique tokens to the vocabulary dictionaries.
+        """
+        answers_vocab_tokened = self.answer_vocab_int()
+        codes = ['<PAD>', '<EOS>', '<UNK>', '<GO>']
+
+        for code in codes:
+            answers_vocab_tokened[code] = len(answers_vocab_tokened) + 1
+        return answers_vocab_tokened
+
+    def question_int_vocab(self):
+        """
+        @desc: Create dictionaries to map the unique integers to their respective words.
+        i.e. an inverse dictionary for vocab_to_int.
+        """
+        return {v_i: v for v, v_i in self.question_vocab_int().items()}
+
+    def answer_int_vocab(self):
+        """
+        @desc: Create dictionaries to map the unique integers to their respective words.
+        i.e. an inverse dictionary for vocab_to_int.
+        """
+        return {v_i: v for v, v_i in self.answer_vocab_int().items()}
+
+    def tokenize_answer(self):
+        """
+        @desc: Add the end of sentence token to the end of every answer.
+        """
+        eos_answers = []
+        db_rows = select_all_data('arxiod_filtered_data')
+        for question, answer in db_rows:
+            eos_answers.append(answer + ' <EOS>')
+        return eos_answers
 
 if __name__ == '__main__':
     p = Preprocessor('data/dataset/cornell movie-dialogs corpus/movie_lines.txt', 'data/dataset/cornell movie-dialogs corpus/movie_conversations.txt')
-    p.create_vocabulary()
+    print(p.tokenize_answer())
