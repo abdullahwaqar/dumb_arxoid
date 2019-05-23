@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 from training_model import *
 from preprocess import Preprocessor
+from db_utils import select_all_data
 
 #* Set the Hyperparameters
 epochs = 100
@@ -32,7 +33,7 @@ def batch_data(questions, answers, batch_size):
         start_i = batch_i * batch_size
         questions_batch = questions[start_i:start_i + batch_size]
         answers_batch = answers[start_i:start_i + batch_size]
-        pad_questions_batch = np.array(pad_sentence_batch(questions_batch, questions_vocab_to_int))
+        pad_questions_batch = np.array(pad_sentence_batch(questions_batch, data.question_vocab_int()))
         pad_answers_batch = np.array(pad_sentence_batch(answers_batch, answers_vocab_to_int))
         yield pad_questions_batch, pad_answers_batch
 
@@ -161,3 +162,42 @@ def train():
         break
 
 def run():
+    #? Create your own input question
+    #? input_question = 'How are you?'
+
+    short_questions = []
+    db_rows = select_all_data('arxiod_filtered_data')
+    for question, answer in db_rows:
+        short_questions.append(question)
+
+    #* Use a question from the data as your input
+    random = np.random.choice(len(short_questions))
+    input_question = short_questions[random]
+
+    #* Prepare the question
+    input_question = question_to_seq(input_question, data.question_vocab_int())
+
+    #* Pad the questions until it equals the max_line_length
+    input_question = input_question + [data.question_vocab_int()["<PAD>"]] * (max_line_length - len(input_question))
+    #* Add empty questions so the the input_data is the correct shape
+    batch_shell = np.zeros((batch_size, max_line_length))
+    #* Set the first question to be out input question
+    batch_shell[0] = input_question
+
+    #* Run the model with the input question
+    answer_logits = sess.run(inference_logits, {input_data: batch_shell, keep_prob: 1.0})[0]
+
+    #* Remove the padding from the Question and Answer
+    pad_q = data.question_vocab_int()["<PAD>"]
+    pad_a = answers_vocab_to_int["<PAD>"]
+
+    print('Question')
+    print('  Word Ids:      {}'.format([i for i in input_question if i != pad_q]))
+    print('  Input Words: {}'.format([questions_int_to_vocab[i] for i in input_question if i != pad_q]))
+
+    print('\nAnswer')
+    print('  Word Ids:      {}'.format([i for i in np.argmax(answer_logits, 1) if i != pad_a]))
+    print('  Response Words: {}'.format([answers_int_to_vocab[i] for i in np.argmax(answer_logits, 1) if i != pad_a]))
+
+if __name__ == '__main__':
+    run()
