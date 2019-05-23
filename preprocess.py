@@ -1,7 +1,5 @@
 import sys
 import re
-import numpy as np
-import pandas as pd
 
 from db_utils import insert_into_table, select_all_data
 
